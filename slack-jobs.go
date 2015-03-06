@@ -6,7 +6,10 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"encoding/json"
+	"strings"
+	"github.com/fzzy/radix"
 )
 
 func main() {
@@ -19,18 +22,22 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		Text string `json:"text"`
 	}
 
-	bodybytes := make([]byte, r.ContentLength)
+	body := make([]byte, r.ContentLength)
 
 	if r.Method == "POST" {
-		r.Body.Read(bodybytes)
-		res := Response{
-			Text: string(bodybytes),
+		r.Body.Read(body)
+		data, err := url.ParseQuery(string(body))
+		if err != nil {
+			fmt.Println("error:", err)
 		}
-		b, err := json.Marshal(res)
+		res := Response{
+			Text: "@" + data.Get("user_name") + ": " + strings.TrimPrefix(data.Get("text"), "slackops: "),
+		}
+		jres, err := json.Marshal(res)
 		if err != nil {
 			fmt.Println("error:", err)
 		}
 		w.Header().Set("Content-type", "application/json")
-		fmt.Fprintf(w, string(b))
+		fmt.Fprintf(w, string(jres))
 	}
 }
