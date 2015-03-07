@@ -42,7 +42,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 	type Job struct {
 		Class string `json:"class"`
-		Vars map[string]string `json:"vars"`
+		Args map[string]string `json:"args"`
 	}
 
 	body := make([]byte, r.ContentLength)
@@ -65,7 +65,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		// create job
 		job := Job{
 			Class: CLASS,
-			Vars: map[string]string {
+			Args: map[string]string {
 			"request": strings.TrimPrefix(data.Get("text"), data.Get("trigger_word")),
 			"user": data.Get("user_name"),
 			"channel": data.Get("channel_name"),
