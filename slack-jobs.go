@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"flag"
 	"net/http"
 	"net/url"
 	"encoding/json"
@@ -14,14 +15,26 @@ import (
 
 // some default global variable
 var (
-	PORT string = ":8765"
+	PORT string
 	API_PATH string = "/api"
-	REDIS string = "localhost:6379"
-	CLASS string = "SlackOPS"
-	QUEUE string = "slackops"
+	REDIS string
+	CLASS string
+	QUEUE string
 )
 
 func main() {
+	// config parameter
+	p_port := flag.String("p", "8765", "listen port")
+	p_redis := flag.String("r", "localhost:6379", "redis host")
+	p_class := flag.String("c", "SlackOPS", "resque class")
+	p_queue := flag.String("q", "slackops", "resque queue")
+	flag.Parse()
+
+	PORT = ":" + *p_port
+	REDIS = *p_redis
+	CLASS = *p_class
+	QUEUE = *p_queue
+
 	// connect to redis and add queue
 	rcon, err := redis.Dial("tcp", REDIS)
 	if err != nil {
