@@ -11,17 +11,25 @@ import (
 	"encoding/json"
 	"strings"
 	"github.com/fzzy/radix/redis"
+	"github.com/glacjay/goini"
 )
 
 // some default global variable
 var (
-	PORT string
+	PORT string = "8765"
 	API_PATH string = "/api"
-	REDIS string
-	CLASS string
-	QUEUE string
-	TOKENS map[string]bool
+	REDIS string = "localhost:6379"
+	CLASS string = "SlackOPS"
+	QUEUE string = "slackops"
+	TOKENS map[string]bool = make(map[string]bool)
+	VERBOSE bool = false
+	FLAGS map[string]bool = make(map[string]bool)
+	err error
 )
+
+func check_flag(f *flag.Flag) {
+	FLAGS[f.Name] = true
+}
 
 func main() {
 	// config parameter
@@ -30,21 +38,59 @@ func main() {
 	p_class := flag.String("c", "SlackOPS", "resque class")
 	p_queue := flag.String("q", "slackops", "resque queue")
 	p_tokens := flag.String("t", "", "slack tokens, split by a comma (,)")
+	p_verbose := flag.Bool("v", false, "verbose")
+	p_config := flag.String("C", "", "configuration file")
 	flag.Parse()
 
-	PORT = ":" + *p_port
-	REDIS = *p_redis
-	CLASS = *p_class
-	QUEUE = *p_queue
-	TOKENS = make(map[string]bool)
-	for _, t := range strings.Split(*p_tokens, ",") {
-		TOKENS[t] = true
+	// mark parsed flags
+	flag.Visit(check_flag)
+	fmt.Printf("flags: %s\n", FLAGS)
+
+	// read config file
+	if len(*p_config) > 0 {
+		config, err := ini.Load(*p_config)
+		if err != nil {
+			fmt.Println("error:", err)
+			return
+		}
+		c_port, exist := config.GetString("general", "port")
+		if exist {
+			PORT = ":" + c_port
+		}
+		// TODO: other config
+	}
+
+	// override configuration with flags
+	if FLAGS["p"] {
+		PORT = ":" + *p_port
+	}
+	if FLAGS["r"] {
+		REDIS = *p_redis
+	}
+	if FLAGS["c"] {
+		CLASS = *p_class
+	}
+	if FLAGS["q"] {
+		QUEUE = *p_queue
+	}
+	if FLAGS["t"] {
+		for _, t := range strings.Split(*p_tokens, ",") {
+			TOKENS[t] = true
+		}
+	}
+	if FLAGS["v"] {
+		VERBOSE = *p_verbose
+	}
+
+	if VERBOSE {
+		fmt.Printf("Listening on port %s\n", PORT)
 	}
 
 	// connect to redis and add queue
 	rcon, err := redis.Dial("tcp", REDIS)
 	if err != nil {
 		fmt.Println("error:", err)
+		return
 	}
 	rcon.Cmd("SADD", "resque:queues", QUEUE)
 	rcon.Close()
