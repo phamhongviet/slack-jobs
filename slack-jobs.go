@@ -16,8 +16,7 @@ import (
 
 // dictionary of string
 type Dict map[string]bool
-func StringToDict(s string) (d Dict) {
-	d = make(Dict)
+func StringToDict(s string, d Dict) {
 	for _, v := range strings.Split(s, ",") {
 		d[v] = true
 	}
@@ -42,9 +41,9 @@ var (
 	REDIS string = "localhost:6379"
 	CLASS string = "SlackOPS"
 	QUEUE string = "slackops"
-	TOKENS map[string]bool = make(map[string]bool)
+	TOKENS Dict = make(Dict)
 	VERBOSE bool = false
-	FLAGS map[string]bool = make(map[string]bool)
+	FLAGS Dict = make(Dict)
 	ACCESS_LIST AccessList = make(AccessList)
 	DEFAULT_ALLOW_RESPONSE_TEXT = "please wait"
 	DEFAULT_DENY_RESPONSE_TEXT = "task denied"
@@ -97,9 +96,7 @@ func main() {
 		}
 		c_tokens, exist := config.GetString("general", "tokens")
 		if exist {
-			for _, t := range strings.Split(c_tokens, ",") {
-				TOKENS[t] = true
-			}
+			StringToDict(c_tokens, TOKENS)
 		}
 		c_verbose, exist := config.GetBool("general", "verbose")
 		if exist {
@@ -131,7 +128,8 @@ func main() {
 					fmt.Printf("Skipping %s\nError: policy must be either 'allow' or 'deny'", s)
 					continue
 				}
-				users := StringToDict(users_string)
+				users := make(Dict)
+				StringToDict(users_string, users)
 
 				// create AccessRule
 				ar := AccessRule{
@@ -160,9 +158,7 @@ func main() {
 		QUEUE = *p_queue
 	}
 	if FLAGS["t"] {
-		for _, t := range strings.Split(*p_tokens, ",") {
-			TOKENS[t] = true
-		}
+		StringToDict(*p_tokens, TOKENS)
 	}
 	if FLAGS["v"] {
 		VERBOSE = *p_verbose
