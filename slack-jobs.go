@@ -14,6 +14,27 @@ import (
 	"github.com/glacjay/goini"
 )
 
+// dictionary of string
+type Dict map[string]bool
+func StringToDict(s string) (d Dict) {
+	d = make(Dict)
+	for _, v := range strings.Split(s, ",") {
+		d[v] = true
+	}
+	return
+}
+
+// access rule
+type AccessRule struct {
+	Name string
+	Users Dict
+	Policy bool
+	Allow_msg string
+	Deny_msg string
+}
+
+type AccessList []AccessRule
+
 // some default global variable
 var (
 	PORT string = ":8765"
@@ -24,6 +45,7 @@ var (
 	TOKENS map[string]bool = make(map[string]bool)
 	VERBOSE bool = false
 	FLAGS map[string]bool = make(map[string]bool)
+	ACCESS_LIST AccessList
 	err error
 )
 
@@ -52,6 +74,7 @@ func main() {
 			fmt.Println("error:", err)
 			return
 		}
+
 		// load general config
 		c_port, exist := config.GetString("general", "port")
 		if exist {
@@ -78,6 +101,45 @@ func main() {
 		c_verbose, exist := config.GetBool("general", "verbose")
 		if exist {
 			VERBOSE = c_verbose
+		}
+
+		// load access list
+		for _, s := range config.GetSections() {
+			if strings.HasPrefix(s, "job: ") {
+				// read users and policy (mandatory)
+				users_string, e_users := config.GetString(s, "users")
+				policy_string, e_policy := config.GetString(s, "policy")
+				if !(e_users && e_policy) {
+					fmt.Printf("Skipping %s\nError: policy and users are mandatory in a job", s)
+					continue
+				}
+
+				// read allow_msg and deny_msg (optional)
+				allow_msg, _ := config.GetString(s, "allow_msg")
+				deny_msg, _ := config.GetString(s, "deny_msg")
+
+				// parse users and policy
+				var policy bool
+				if policy_string == "allow" {
+					policy = true
+				} else if policy_string == "deny" {
+					policy = false
+				} else {
+					fmt.Printf("Skipping %s\nError: policy must be either 'allow' or 'deny'", s)
+					continue
+				}
+				users := StringToDict(users_string)
+
+				// create AccessRule
+				ar := AccessRule{
+					Name: strings.TrimPrefix(s, "job: "),
+					Users: users,
+					Policy: policy,
+					Allow_msg: allow_msg,
+					Deny_msg: deny_msg,
+				}
+				ACCESS_LIST = append(ACCESS_LIST, ar)
+			}
 		}
 	}
 
