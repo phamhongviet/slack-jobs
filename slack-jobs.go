@@ -16,7 +16,7 @@ import (
 
 // some default global variable
 var (
-	PORT string = "8765"
+	PORT string = ":8765"
 	API_PATH string = "/api"
 	REDIS string = "localhost:6379"
 	CLASS string = "SlackOPS"
@@ -44,20 +44,41 @@ func main() {
 
 	// mark parsed flags
 	flag.Visit(check_flag)
-	fmt.Printf("flags: %s\n", FLAGS)
 
 	// read config file
-	if len(*p_config) > 0 {
+	if FLAGS["C"] {
 		config, err := ini.Load(*p_config)
 		if err != nil {
 			fmt.Println("error:", err)
 			return
 		}
+		// load general config
 		c_port, exist := config.GetString("general", "port")
 		if exist {
 			PORT = ":" + c_port
 		}
-		// TODO: other config
+		c_redis, exist := config.GetString("general", "redis")
+		if exist {
+			REDIS = c_redis
+		}
+		c_class, exist := config.GetString("general", "class")
+		if exist {
+			CLASS = c_class
+		}
+		c_queue, exist := config.GetString("general", "queue")
+		if exist {
+			QUEUE = c_queue
+		}
+		c_tokens, exist := config.GetString("general", "tokens")
+		if exist {
+			for _, t := range strings.Split(c_tokens, ",") {
+				TOKENS[t] = true
+			}
+		}
+		c_verbose, exist := config.GetBool("general", "verbose")
+		if exist {
+			VERBOSE = c_verbose
+		}
 	}
 
 	// override configuration with flags
@@ -83,7 +104,12 @@ func main() {
 	}
 
 	if VERBOSE {
-		fmt.Printf("Listening on port %s\n", PORT)
+		fmt.Printf("Listening on port %s using resque at %s\n", PORT, REDIS)
+		fmt.Printf("Jobs will be pushed to queue %s, class %s\n", QUEUE, CLASS)
+		fmt.Printf("Accepting tokens:\n")
+		for t, _ := range TOKENS {
+			fmt.Printf("+ %s\n", t)
+		}
 	}
 
 	// connect to redis and add queue
@@ -97,7 +123,11 @@ func main() {
 
 	// start web app
 	http.HandleFunc(API_PATH, apiHandler)
-	http.ListenAndServe(PORT, nil)
+	err = http.ListenAndServe(PORT, nil)
+	if err != nil {
+		fmt.Println("error:", err)
+		return
+	}
 }
 
 func apiHandler(w http.ResponseWriter, r *http.Request) {
