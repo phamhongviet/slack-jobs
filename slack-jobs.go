@@ -48,6 +48,7 @@ var (
 	ACCESS_LIST AccessList = make(AccessList)
 	DEFAULT_ALLOW_RESPONSE_TEXT = "please wait"
 	DEFAULT_DENY_RESPONSE_TEXT = "task denied"
+	UNDEFINED_JOB_CAN_PASS = true
 	err error
 )
 
@@ -229,7 +230,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	user := data.Get("user_name")
 
 	// filter with access list
-	var pass bool
+	var pass bool = UNDEFINED_JOB_CAN_PASS
 	var response_text string
 	if ACCESS_LIST[request] != nil {
 		// if user in deny list
@@ -265,6 +266,13 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				response_text = DEFAULT_ALLOW_RESPONSE_TEXT
 			}
 		}
+	} else {
+		// response to undefined job
+		if pass {
+			response_text = DEFAULT_ALLOW_RESPONSE_TEXT
+		} else {
+			response_text = DEFAULT_DENY_RESPONSE_TEXT
+		}
 	}
 
 	if pass {
@@ -296,7 +304,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 	// response to slack
 	res := Response{
-		Text: "@" + user + ": " + response_text),
+		Text: "@" + user + ": " + response_text,
 	}
 	jres, err := json.Marshal(res)
 	if err != nil {
