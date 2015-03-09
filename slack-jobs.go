@@ -28,6 +28,8 @@ type AccessRule struct {
 	Name string
 	Users Dict
 	Policy bool
+	Class string
+	Queue string
 	Allow_msg string
 	Deny_msg string
 }
@@ -114,9 +116,11 @@ func main() {
 					continue
 				}
 
-				// read allow_msg and deny_msg (optional)
+				// read optional config
 				allow_msg, _ := config.GetString(s, "allow_msg")
 				deny_msg, _ := config.GetString(s, "deny_msg")
+				class, _ := config.GetString(s, "class")
+				queue, _ := config.GetString(s, "queue")
 
 				// parse users and policy
 				var policy bool
@@ -136,6 +140,8 @@ func main() {
 					Name: strings.TrimPrefix(s, "job: "),
 					Users: users,
 					Policy: policy,
+					Class: class,
+					Queue: queue,
 					Allow_msg: allow_msg,
 					Deny_msg: deny_msg,
 				}
@@ -180,6 +186,12 @@ func main() {
 		return
 	}
 	rcon.Cmd("SADD", "resque:queues", QUEUE)
+	// add queue optionally specified in jobs
+	for _, v := range ACCESS_LIST {
+		if len(v.Queue) > 0 {
+			rcon.Cmd("SADD", "resque:queues", v.Queue)
+		}
+	}
 	rcon.Close()
 
 	// start web app
@@ -228,6 +240,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	// filter with access list
 	var pass bool = UNDEFINED_JOB_CAN_PASS
 	var response_text string
+	var class string
+	var queue string
 	if ACCESS_LIST[request] != nil {
 		// if user in deny list
 		if (!ACCESS_LIST[request].Policy && ACCESS_LIST[request].Users[user]) {
@@ -256,16 +270,33 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// if user is allowed
 		if pass {
+			// choose response text
 			if len(ACCESS_LIST[request].Allow_msg) > 0 {
 				response_text = ACCESS_LIST[request].Allow_msg
 			} else {
 				response_text = DEFAULT_ALLOW_RESPONSE_TEXT
 			}
+
+			// choose class
+			if len(ACCESS_LIST[request].Class) > 0 {
+				class = ACCESS_LIST[request].Class
+			} else {
+				class = CLASS
+			}
+
+			// choose queue
+			if len(ACCESS_LIST[request].Queue) > 0 {
+				queue = "resque:queue:" + ACCESS_LIST[request].Queue
+			} else {
+				queue = "resque:queue:" + QUEUE
+			}
 		}
 	} else {
-		// response to undefined job
+		// undefined job
 		if pass {
 			response_text = DEFAULT_ALLOW_RESPONSE_TEXT
+			class = CLASS
+			queue = "resque:queue:" + QUEUE
 		} else {
 			response_text = DEFAULT_DENY_RESPONSE_TEXT
 		}
@@ -280,7 +311,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 		// create job
 		job := Job{
-			Class: CLASS,
+			Class: class,
 			Args: map[string]string {
 			"request": request,
 			"user": user,
@@ -288,13 +319,12 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			"timestamp": data.Get("timestamp"),
 			},
 		}
-		jjob, err := json.Marshal(job)
+		json_job, err := json.Marshal(job)
 		if err != nil {
 			fmt.Println("error:", err)
 		}
 		// push job to resque
-		queue := "resque:queue:" + QUEUE
-		rcon.Cmd("RPUSH", queue, string(jjob))
+		rcon.Cmd("RPUSH", queue, string(json_job))
 		rcon.Close()
 	}
 
