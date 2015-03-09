@@ -172,11 +172,11 @@ func main() {
 
 	if VERBOSE {
 		fmt.Printf("Listening on port %s using resque at %s\n", PORT, REDIS)
-		fmt.Printf("Jobs will be pushed to queue %s, class %s\n", QUEUE, CLASS)
 		fmt.Printf("Accepting tokens:\n")
 		for t, _ := range TOKENS {
 			fmt.Printf("+ %s\n", t)
 		}
+		fmt.Printf("Jobs will be pushed to queue %s, class %s\n", QUEUE, CLASS)
 	}
 
 	// connect to redis and add queue
@@ -187,9 +187,16 @@ func main() {
 	}
 	rcon.Cmd("SADD", "resque:queues", QUEUE)
 	// add queue optionally specified in jobs
-	for _, v := range ACCESS_LIST {
+	for k, v := range ACCESS_LIST {
 		if len(v.Queue) > 0 {
 			rcon.Cmd("SADD", "resque:queues", v.Queue)
+			if VERBOSE {
+				fmt.Printf("Job '%s' will be pushed to queue %s", k, v.Queue)
+				if len(v.Class) > 0 {
+					fmt.Printf(", class %s", v.Class)
+				}
+				fmt.Printf("\n")
+			}
 		}
 	}
 	rcon.Close()
