@@ -247,34 +247,33 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	// filter with access list
 	var pass bool = UNDEFINED_JOB_CAN_PASS
 	var response_text string
-	var class string
-	var queue string
+	if UNDEFINED_JOB_CAN_PASS {
+		response_text = DEFAULT_ALLOW_RESPONSE_TEXT
+	} else {
+		response_text = DEFAULT_DENY_RESPONSE_TEXT
+	}
+	var class string = CLASS
+	var queue string = "resque:queue:" + QUEUE
+
+	// if job is defined
 	if ACCESS_LIST[request] != nil {
 		// if user in deny list
 		if (!ACCESS_LIST[request].Policy && ACCESS_LIST[request].Users[user]) {
 			pass = false
-		}
+
 		// if user not in allow list
-		if (ACCESS_LIST[request].Policy && !ACCESS_LIST[request].Users[user]) {
+		} else if (ACCESS_LIST[request].Policy && !ACCESS_LIST[request].Users[user]) {
 			pass = false
-		}
-		// if user is denied
-		if !pass {
-			if len(ACCESS_LIST[request].Deny_msg) > 0 {
-				response_text = ACCESS_LIST[request].Deny_msg
-			} else {
-				response_text = DEFAULT_DENY_RESPONSE_TEXT
-			}
-		}
 
 		// if user in allow list
-		if (ACCESS_LIST[request].Policy && ACCESS_LIST[request].Users[user]) {
+		} else if (ACCESS_LIST[request].Policy && ACCESS_LIST[request].Users[user]) {
 			pass = true
-		}
+
 		// if user not in deny list
-		if (!ACCESS_LIST[request].Policy && !ACCESS_LIST[request].Users[user]) {
+		} else if (!ACCESS_LIST[request].Policy && !ACCESS_LIST[request].Users[user]) {
 			pass = true
 		}
+
 		// if user is allowed
 		if pass {
 			// choose response text
@@ -297,7 +296,16 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				queue = "resque:queue:" + QUEUE
 			}
+
+		// if user is denied
+		} else {
+			if len(ACCESS_LIST[request].Deny_msg) > 0 {
+				response_text = ACCESS_LIST[request].Deny_msg
+			} else {
+				response_text = DEFAULT_DENY_RESPONSE_TEXT
+			}
 		}
+
 	} else {
 		// undefined job
 		if pass {
@@ -339,10 +347,10 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	res := Response{
 		Text: "@" + user + ": " + response_text,
 	}
-	jres, err := json.Marshal(res)
+	json_res, err := json.Marshal(res)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 	w.Header().Set("Content-type", "application/json")
-	fmt.Fprintf(w, string(jres))
+	fmt.Fprintf(w, string(json_res))
 }
