@@ -47,8 +47,8 @@ var (
 	VERBOSE bool = false
 	FLAGS Dict = make(Dict)
 	ACCESS_LIST AccessList = make(AccessList)
-	DEFAULT_ALLOW_RESPONSE_TEXT = "please wait"
-	DEFAULT_DENY_RESPONSE_TEXT = "task denied"
+	ALLOW_MSG = "please wait"
+	DENY_MSG = "task denied"
 	UNDEFINED_JOB_CAN_PASS = true
 	err error
 )
@@ -67,8 +67,8 @@ func main() {
 	p_verbose := flag.Bool("v", false, "verbose")
 	p_config := flag.String("C", "", "configuration file")
 	p_undefined_job_can_pass := flag.Bool("undefined-job-can-pass", false, "Undefined job can pass or not")
-	p_default_allow_response_text := flag.String("default-allow-response-text", "please wait", "Specify default allow response text")
-	p_default_deny_response_text := flag.String("default-deny-response-text", "task denied", "Specify default deny response text")
+	p_allow_msg := flag.String("allow-msg", "please wait", "Specify default allow response text")
+	p_deny_msg := flag.String("deny-msg", "task denied", "Specify default deny response text")
 	flag.Parse()
 
 	// mark parsed flags
@@ -111,13 +111,13 @@ func main() {
 		if exist {
 			UNDEFINED_JOB_CAN_PASS = c_undefined_job_can_pass
 		}
-		c_default_allow_response_text, exist := config.GetString("general", "default_allow_response_text")
+		c_allow_msg, exist := config.GetString("general", "allow_msg")
 		if exist {
-			DEFAULT_ALLOW_RESPONSE_TEXT = c_default_allow_response_text
+			ALLOW_MSG = c_allow_msg
 		}
-		c_default_deny_response_text, exist := config.GetString("general", "default_deny_response_text")
+		c_deny_msg, exist := config.GetString("general", "deny_msg")
 		if exist {
-			DEFAULT_DENY_RESPONSE_TEXT = c_default_deny_response_text
+			DENY_MSG = c_deny_msg
 		}
 
 		// load access list
@@ -187,11 +187,11 @@ func main() {
 	if FLAGS["undefined-job-can-pass"] {
 		UNDEFINED_JOB_CAN_PASS = *p_undefined_job_can_pass
 	}
-	if FLAGS["default-allow-response-text"] {
-		DEFAULT_ALLOW_RESPONSE_TEXT = *p_default_allow_response_text
+	if FLAGS["allow-msg"] {
+		ALLOW_MSG = *p_allow_msg
 	}
-	if FLAGS["default-deny-response-text"] {
-		DEFAULT_DENY_RESPONSE_TEXT = *p_default_deny_response_text
+	if FLAGS["deny-msg"] {
+		DENY_MSG = *p_deny_msg
 	}
 
 	if VERBOSE {
@@ -272,9 +272,9 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	var pass bool = UNDEFINED_JOB_CAN_PASS
 	var response_text string
 	if UNDEFINED_JOB_CAN_PASS {
-		response_text = DEFAULT_ALLOW_RESPONSE_TEXT
+		response_text = ALLOW_MSG
 	} else {
-		response_text = DEFAULT_DENY_RESPONSE_TEXT
+		response_text = DENY_MSG
 	}
 	var class string = CLASS
 	var queue string = "resque:queue:" + QUEUE
@@ -304,7 +304,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			if len(ACCESS_LIST[request].Allow_msg) > 0 {
 				response_text = ACCESS_LIST[request].Allow_msg
 			} else {
-				response_text = DEFAULT_ALLOW_RESPONSE_TEXT
+				response_text = ALLOW_MSG
 			}
 
 			// choose class
@@ -326,18 +326,18 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 			if len(ACCESS_LIST[request].Deny_msg) > 0 {
 				response_text = ACCESS_LIST[request].Deny_msg
 			} else {
-				response_text = DEFAULT_DENY_RESPONSE_TEXT
+				response_text = DENY_MSG
 			}
 		}
 
 	} else {
 		// undefined job
 		if pass {
-			response_text = DEFAULT_ALLOW_RESPONSE_TEXT
+			response_text = ALLOW_MSG
 			class = CLASS
 			queue = "resque:queue:" + QUEUE
 		} else {
-			response_text = DEFAULT_DENY_RESPONSE_TEXT
+			response_text = DENY_MSG
 		}
 	}
 
