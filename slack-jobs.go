@@ -66,6 +66,9 @@ func main() {
 	p_tokens := flag.String("t", "", "slack tokens, split by a comma (,)")
 	p_verbose := flag.Bool("v", false, "verbose")
 	p_config := flag.String("C", "", "configuration file")
+	p_undefined_job_can_pass := flag.Bool("undefined-job-can-pass", false, "Undefined job can pass or not")
+	p_default_allow_response_text := flag.String("default-allow-response-text", "please wait", "Specify default allow response text")
+	p_default_deny_response_text := flag.String("default-deny-response-text", "task denied", "Specify default deny response text")
 	flag.Parse()
 
 	// mark parsed flags
@@ -103,6 +106,18 @@ func main() {
 		c_verbose, exist := config.GetBool("general", "verbose")
 		if exist {
 			VERBOSE = c_verbose
+		}
+		c_undefined_job_can_pass, exist := config.GetBool("general", "undefined_job_can_pass")
+		if exist {
+			UNDEFINED_JOB_CAN_PASS = c_undefined_job_can_pass
+		}
+		c_default_allow_response_text, exist := config.GetString("general", "default_allow_response_text")
+		if exist {
+			DEFAULT_ALLOW_RESPONSE_TEXT = c_default_allow_response_text
+		}
+		c_default_deny_response_text, exist := config.GetString("general", "default_deny_response_text")
+		if exist {
+			DEFAULT_DENY_RESPONSE_TEXT = c_default_deny_response_text
 		}
 
 		// load access list
@@ -168,6 +183,15 @@ func main() {
 	}
 	if FLAGS["v"] {
 		VERBOSE = *p_verbose
+	}
+	if FLAGS["undefined-job-can-pass"] {
+		UNDEFINED_JOB_CAN_PASS = *p_undefined_job_can_pass
+	}
+	if FLAGS["default-allow-response-text"] {
+		DEFAULT_ALLOW_RESPONSE_TEXT = *p_default_allow_response_text
+	}
+	if FLAGS["default-deny-response-text"] {
+		DEFAULT_DENY_RESPONSE_TEXT = *p_default_deny_response_text
 	}
 
 	if VERBOSE {
