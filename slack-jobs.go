@@ -241,7 +241,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 	type Job struct {
 		Class string `json:"class"`
-		Args map[string]string `json:"args"`
+		Args []string `json:"args"`
 	}
 
 	// accept only POST
@@ -351,11 +351,11 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		// create job
 		job := Job{
 			Class: class,
-			Args: map[string]string {
-			"request": request,
-			"user": user,
-			"channel": data.Get("channel_name"),
-			"timestamp": data.Get("timestamp"),
+			Args: []string {
+			"request=" + request,
+			"user=" + user,
+			"channel_name=" + data.Get("channel_name"),
+			"timestamp=" + data.Get("timestamp"),
 			},
 		}
 		json_job, err := json.Marshal(job)
