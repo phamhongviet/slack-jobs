@@ -46,24 +46,14 @@ curl -X POST -d 'token=t0k3nFromSlack0utgo1ngWebhO0ks' -d 'channel_name=slackops
 You should see a job in your redis server like one above.
 
 ## Configuration Flags
--C=CONFIG-FILE        
-	specify configuration file        
--p=PORT        
-	listen on PORT        
--r=REDIS-HOST:REDIS-PORT        
-	connect to REDIS-HOST at REDIS-PORT for enqueuing jobs        
--t=TOKENS        
-	accept only these TOKENS, tokens are separated by commas (,)        
--c=CLASS        
-	specify default class        
--q=QUEUE        
-	specify default queue        
--allow-msg=MSG        
-	specify default message for allowed jobs        
--deny-msg=MSG        
-	specify default message for denied jobs        
--undefined-job-can-pass        
-	allow or deny undefined jobs        
--v        
-	verbose        
+* `-C=CONFIG-FILE`: specify configuration file
+* `-p=PORT`: listen on PORT
+* `-r=REDIS-HOST:REDIS-PORT`: connect to REDIS-HOST at REDIS-PORT for enqueuing jobs
+* `-t=TOKENS`: accept only these TOKENS, tokens are separated by commas (,)
+* `-c=CLASS`: specify default class
+* `-q=QUEUE`: specify default queue
+* `-allow-msg=MSG`: specify default message for allowed jobs
+* `-deny-msg=MSG`: specify default message for denied jobs
+* `-undefined-job-can-pass`: allow or deny undefined jobs
+* `-v`: verbose
 
