@@ -4,18 +4,19 @@ Tiny web server to handle slack outgoing webhook and push the data to resque
 package main
 
 import (
-	"fmt"
-	"flag"
-	"net/http"
-	"net/url"
 	"encoding/json"
-	"strings"
+	"flag"
+	"fmt"
 	"github.com/fzzy/radix/redis"
 	"github.com/glacjay/goini"
+	"net/http"
+	"net/url"
+	"strings"
 )
 
 // dictionary of string
 type Dict map[string]bool
+
 func StringToDict(s string, d Dict) {
 	for _, v := range strings.Split(s, ",") {
 		d[v] = true
@@ -25,32 +26,32 @@ func StringToDict(s string, d Dict) {
 
 // access rule
 type AccessRule struct {
-	Name string
-	Users Dict
-	Policy bool
-	Class string
-	Queue string
+	Name      string
+	Users     Dict
+	Policy    bool
+	Class     string
+	Queue     string
 	Allow_msg string
-	Deny_msg string
+	Deny_msg  string
 }
 
 type AccessList map[string]*AccessRule
 
 // some default global variable
 var (
-	PORT string = ":8765"
-	API_PATH string = "/api"
-	REDIS string = "localhost:6379"
-	CLASS string = "SlackOPS"
-	QUEUE string = "slackops"
-	TOKENS Dict = make(Dict)
-	VERBOSE bool = false
-	FLAGS Dict = make(Dict)
-	ACCESS_LIST AccessList = make(AccessList)
-	ALLOW_MSG = "please wait"
-	DENY_MSG = "task denied"
-	UNDEFINED_JOB_CAN_PASS = true
-	err error
+	PORT                   string     = ":8765"
+	API_PATH               string     = "/api"
+	REDIS                  string     = "localhost:6379"
+	CLASS                  string     = "SlackOPS"
+	QUEUE                  string     = "slackops"
+	TOKENS                 Dict       = make(Dict)
+	VERBOSE                bool       = false
+	FLAGS                  Dict       = make(Dict)
+	ACCESS_LIST            AccessList = make(AccessList)
+	ALLOW_MSG                         = "please wait"
+	DENY_MSG                          = "task denied"
+	UNDEFINED_JOB_CAN_PASS            = true
+	err                    error
 )
 
 func check_flag(f *flag.Flag) {
@@ -152,13 +153,13 @@ func main() {
 
 				// create AccessRule
 				ar := AccessRule{
-					Name: strings.TrimPrefix(s, "job: "),
-					Users: users,
-					Policy: policy,
-					Class: class,
-					Queue: queue,
+					Name:      strings.TrimPrefix(s, "job: "),
+					Users:     users,
+					Policy:    policy,
+					Class:     class,
+					Queue:     queue,
 					Allow_msg: allow_msg,
-					Deny_msg: deny_msg,
+					Deny_msg:  deny_msg,
 				}
 				ACCESS_LIST[ar.Name] = &ar
 			}
@@ -240,8 +241,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type Job struct {
-		Class string `json:"class"`
-		Args []string `json:"args"`
+		Class string   `json:"class"`
+		Args  []string `json:"args"`
 	}
 
 	// accept only POST
@@ -258,7 +259,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check token
-	if ! TOKENS[data.Get("token")] {
+	if !TOKENS[data.Get("token")] {
 		return
 	}
 
@@ -295,19 +296,19 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	// if job is defined
 	if job_is_defined {
 		// if user in deny list
-		if (!ACCESS_LIST[job_type].Policy && ACCESS_LIST[job_type].Users[user]) {
+		if !ACCESS_LIST[job_type].Policy && ACCESS_LIST[job_type].Users[user] {
 			pass = false
 
 		// if user not in allow list
-		} else if (ACCESS_LIST[job_type].Policy && !ACCESS_LIST[job_type].Users[user]) {
+		} else if ACCESS_LIST[job_type].Policy && !ACCESS_LIST[job_type].Users[user] {
 			pass = false
 
 		// if user in allow list
-		} else if (ACCESS_LIST[job_type].Policy && ACCESS_LIST[job_type].Users[user]) {
+		} else if ACCESS_LIST[job_type].Policy && ACCESS_LIST[job_type].Users[user] {
 			pass = true
 
 		// if user not in deny list
-		} else if (!ACCESS_LIST[job_type].Policy && !ACCESS_LIST[job_type].Users[user]) {
+		} else if !ACCESS_LIST[job_type].Policy && !ACCESS_LIST[job_type].Users[user] {
 			pass = true
 		}
 
@@ -364,11 +365,11 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		// create job
 		job := Job{
 			Class: class,
-			Args: []string {
-			"request=" + request,
-			"user=" + user,
-			"channel_name=" + data.Get("channel_name"),
-			"timestamp=" + data.Get("timestamp"),
+			Args: []string{
+				"request=" + request,
+				"user=" + user,
+				"channel_name=" + data.Get("channel_name"),
+				"timestamp=" + data.Get("timestamp"),
 			},
 		}
 		json_job, err := json.Marshal(job)
