@@ -279,52 +279,65 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	var class string = CLASS
 	var queue string = "resque:queue:" + QUEUE
 
+	// check if job is defined
+	job_is_defined := false
+	var job_type string
+	for k, v := range ACCESS_LIST {
+		if strings.HasPrefix(request, k) {
+			if v != nil {
+				job_is_defined = true
+				job_type = k
+				break
+			}
+		}
+	}
+
 	// if job is defined
-	if ACCESS_LIST[request] != nil {
+	if job_is_defined {
 		// if user in deny list
-		if (!ACCESS_LIST[request].Policy && ACCESS_LIST[request].Users[user]) {
+		if (!ACCESS_LIST[job_type].Policy && ACCESS_LIST[job_type].Users[user]) {
 			pass = false
 
 		// if user not in allow list
-		} else if (ACCESS_LIST[request].Policy && !ACCESS_LIST[request].Users[user]) {
+		} else if (ACCESS_LIST[job_type].Policy && !ACCESS_LIST[job_type].Users[user]) {
 			pass = false
 
 		// if user in allow list
-		} else if (ACCESS_LIST[request].Policy && ACCESS_LIST[request].Users[user]) {
+		} else if (ACCESS_LIST[job_type].Policy && ACCESS_LIST[job_type].Users[user]) {
 			pass = true
 
 		// if user not in deny list
-		} else if (!ACCESS_LIST[request].Policy && !ACCESS_LIST[request].Users[user]) {
+		} else if (!ACCESS_LIST[job_type].Policy && !ACCESS_LIST[job_type].Users[user]) {
 			pass = true
 		}
 
 		// if user is allowed
 		if pass {
 			// choose response text
-			if len(ACCESS_LIST[request].Allow_msg) > 0 {
-				response_text = ACCESS_LIST[request].Allow_msg
+			if len(ACCESS_LIST[job_type].Allow_msg) > 0 {
+				response_text = ACCESS_LIST[job_type].Allow_msg
 			} else {
 				response_text = ALLOW_MSG
 			}
 
 			// choose class
-			if len(ACCESS_LIST[request].Class) > 0 {
-				class = ACCESS_LIST[request].Class
+			if len(ACCESS_LIST[job_type].Class) > 0 {
+				class = ACCESS_LIST[job_type].Class
 			} else {
 				class = CLASS
 			}
 
 			// choose queue
-			if len(ACCESS_LIST[request].Queue) > 0 {
-				queue = "resque:queue:" + ACCESS_LIST[request].Queue
+			if len(ACCESS_LIST[job_type].Queue) > 0 {
+				queue = "resque:queue:" + ACCESS_LIST[job_type].Queue
 			} else {
 				queue = "resque:queue:" + QUEUE
 			}
 
 		// if user is denied
 		} else {
-			if len(ACCESS_LIST[request].Deny_msg) > 0 {
-				response_text = ACCESS_LIST[request].Deny_msg
+			if len(ACCESS_LIST[job_type].Deny_msg) > 0 {
+				response_text = ACCESS_LIST[job_type].Deny_msg
 			} else {
 				response_text = DENY_MSG
 			}
