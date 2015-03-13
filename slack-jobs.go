@@ -247,6 +247,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 	// accept only POST
 	if r.Method != "POST" {
+		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
 
@@ -260,6 +261,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 	// check token
 	if !TOKENS[data.Get("token")] {
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
@@ -337,6 +339,8 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 
 		// if user is denied
 		} else {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
 			if len(ACCESS_LIST[job_type].Deny_msg) > 0 {
 				response_text = ACCESS_LIST[job_type].Deny_msg
 			} else {
@@ -389,6 +393,6 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	w.Header().Set("Content-type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, string(json_res))
 }
