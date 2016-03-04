@@ -16,6 +16,10 @@ func TestNewJob(t *testing.T) {
 		t.Errorf("Failed to create new job")
 	}
 
+	if len(j.Args) != 2 {
+		t.Errorf("Failed to create new job")
+	}
+
 	for _, a := range j.Args {
 		if (a != "a=1") && (a != "b=2") {
 			t.Errorf("Failed to create new job")

@@ -10,8 +10,15 @@ type Job struct {
 }
 
 func newJob(class string, args url.Values) Job {
+	var a []string
+	for k, v := range args {
+		for _, vv := range v {
+			a = append(a, k+"="+vv)
+		}
+	}
+
 	return Job{
-		Class: "",
-		Args:  nil,
+		Class: class,
+		Args:  a,
 	}
 }
