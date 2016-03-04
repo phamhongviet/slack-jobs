@@ -301,15 +301,15 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		if !ACCESS_LIST[job_type].Policy && ACCESS_LIST[job_type].Users[user] {
 			pass = false
 
-		// if user not in allow list
+			// if user not in allow list
 		} else if ACCESS_LIST[job_type].Policy && !ACCESS_LIST[job_type].Users[user] {
 			pass = false
 
-		// if user in allow list
+			// if user in allow list
 		} else if ACCESS_LIST[job_type].Policy && ACCESS_LIST[job_type].Users[user] {
 			pass = true
 
-		// if user not in deny list
+			// if user not in deny list
 		} else if !ACCESS_LIST[job_type].Policy && !ACCESS_LIST[job_type].Users[user] {
 			pass = true
 		}
@@ -337,7 +337,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 				queue = "resque:queue:" + QUEUE
 			}
 
-		// if user is denied
+			// if user is denied
 		} else {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusForbidden)
