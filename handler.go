@@ -132,7 +132,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// create job
-		job := Job{
+		job := job{
 			Class: class,
 			Args: []string{
 				"request=" + request,
