@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/fzzy/radix/redis"
 	"fmt"
+	"github.com/fzzy/radix/redis"
 	"net/http"
 	"net/url"
 	"strings"
