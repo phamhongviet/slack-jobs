@@ -13,11 +13,6 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		Text string `json:"text"`
 	}
 
-	type Job struct {
-		Class string   `json:"class"`
-		Args  []string `json:"args"`
-	}
-
 	// accept only POST
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusNotImplemented)
