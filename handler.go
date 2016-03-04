@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/fzzy/radix/redis"
 	"net/http"
-	"net/url"
 	"strings"
 )
 
@@ -25,10 +24,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// read and parse request body content
-	body := make([]byte, r.ContentLength)
-	r.Body.Read(body)
-	data, err := url.ParseQuery(string(body))
+	data, err := parseRequest(r)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
