@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"testing"
 	"strings"
+	"testing"
 )
 
 func TestParseRequest(t *testing.T) {
