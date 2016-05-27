@@ -1,4 +1,7 @@
 # Slack Jobs
+[![Build Status](https://travis-ci.org/phamhongviet/slack-jobs.svg)](https://travis-ci.org/phamhongviet/slack-jobs)
+[![Docker Repository on Quay](https://quay.io/repository/phamhongviet/slack-jobs/status "Docker Repository on Quay")](https://quay.io/repository/phamhongviet/slack-jobs)
+
 A tiny web service to handle slack outgoing webhook and push the data to resque
 
 ## How it works
