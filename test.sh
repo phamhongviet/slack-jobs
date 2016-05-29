@@ -1,19 +1,21 @@
 #!/bin/bash
-set -ev
 
 run_test() {
 	go build
 	setup_env
-	run_slack_jobs
+	trap clean_up EXIT
 	go test
-	clean_up
 }
 
 setup_env() {
-	REDIS=$(docker run -d -P redis:3-alpine)
+	REDIS=$(docker run -d redis:3-alpine)
 
-	REDIS_IP_ADDRESS=$(docker inspect ${REDIS} | jq -r '.[] | .NetworkSettings.IPAddress')
-	REDIS_PORT=$(docker inspect ${REDIS} | jq -r '.[] | .NetworkSettings.Ports."6379/tcp" | .[0] | .HostPort')
+	REDIS_IP_ADDRESS=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' ${REDIS})
+	REDIS_PORT=6379
+
+	docker exec -it ${REDIS} redis-cli ping > /dev/null
+
+	run_slack_jobs
 }
 
 run_slack_jobs(){
@@ -24,6 +26,8 @@ run_slack_jobs(){
 clean_up() {
 	kill `cat slack-jobs.pid`
 	rm slack-jobs.pid
-	docker stop ${REDIS}
-	docker rm ${REDIS}
+	docker stop ${REDIS} > /dev/null
+	docker rm ${REDIS} > /dev/null
 }
+
+run_test $@
