@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"testing"
@@ -24,9 +25,15 @@ func TestMain(t *testing.T) {
 		Timeout: timeout,
 	}
 
-	_, err := client.PostForm(URL, data)
+	response, err := client.PostForm(URL, data)
 
 	if err != nil {
 		t.Errorf(err.Error())
+	}
+
+	body, _ := ioutil.ReadAll(response.Body)
+	bodyString := string(body[:])
+	if bodyString != `{"text":"@steve.jobs: OK, one sec"}` {
+		t.Errorf(bodyString)
 	}
 }
