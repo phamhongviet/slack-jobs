@@ -1,0 +1,11 @@
+[Unit]
+Description=Slack Jobs
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/slack-jobs -C /etc/slack-jobs.ini
+ExecStop=/bin/kill -INT $MAINPID
+
+[Install]
+WantedBy=multi-user.target

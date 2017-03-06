@@ -25,6 +25,8 @@ Slack Jobs run as a web service that listen to POST requests from Slack Outgoing
 }
 ```
 
+![How it works](/how-it-work.png "How it works")
+
 ## A quick test
 Set up an empty redis server, for example, localhost:6379
 
@@ -43,7 +45,14 @@ slack-jobs -p 8765 -r localhost:6379 -undefined-job-can-pass -v -t t0k3nFromSlac
 Mimic a Slack Outgoing WebHooks request
 
 ```sh
-curl -X POST -d 'token=t0k3nFromSlack0utgo1ngWebhO0ks' -d 'channel_name=slackops' -d 'timestamp=1426152781.995012' -d 'user_name=myuser.name' -d 'text=ops: slack do something for me' -d 'trigger_word=ops:' localhost:8765/api
+curl -X POST \
+    -d 'token=t0k3nFromSlack0utgo1ngWebhO0ks' \
+    -d 'channel_name=slackops' \
+    -d 'timestamp=1426152781.995012' \
+    -d 'user_name=myuser.name' \
+    -d 'text=ops: slack do something for me' \
+    -d 'trigger_word=ops:' \
+    localhost:8765/api
 ```
 
 You should see a job in your redis server like one above.
