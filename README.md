@@ -25,6 +25,8 @@ Slack Jobs run as a web service that listen to POST requests from Slack Outgoing
 }
 ```
 
+![How it works](/how-it-work.png "How it works")
+
 ## A quick test
 Set up an empty redis server, for example, localhost:6379
 
